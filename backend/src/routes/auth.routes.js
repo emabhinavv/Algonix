@@ -10,7 +10,7 @@ authRoutes.post('/login', login)
 authRoutes.get('/logout', logout)
 authRoutes.get('/check',authMiddleware, check)
 authRoutes.post('/forgot-password', forgotPassword)
-authRoutes.post('/reset-password', resetPassword)
-authRoutes.get('/change-password', changePassword)
+authRoutes.post('/reset-password/:token', resetPassword)
+authRoutes.post('/change-password',authMiddleware, changePassword)
 
 export default authRoutes

@@ -26,16 +26,18 @@ enum Difficulty {
 }
 
 model User {
-  id                String   @id @default(uuid())
-  name              String?
-  email             String   @unique
-  verificationToken String?
-  isVerified        Boolean  @default(false)
-  image             String?
-  role              UserRole @default(USER)
-  password          String
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
+  id                       String    @id @default(uuid())
+  name                     String?
+  email                    String    @unique
+  verificationToken        String?
+  isVerified               Boolean   @default(false)
+  image                    String?
+  role                     UserRole  @default(USER)
+  password                 String
+  createdAt                DateTime  @default(now())
+  updatedAt                DateTime  @updatedAt
+  resetPasswordToken       String?
+  resetPasswordTokenExpiry DateTime?
 
   problems Problem[] //here we are creating realtion between user and problem that is type of one to many means one user can create multiple problems
 }

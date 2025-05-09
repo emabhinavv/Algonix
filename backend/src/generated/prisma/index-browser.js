@@ -127,7 +127,9 @@ exports.Prisma.UserScalarFieldEnum = {
   role: 'role',
   password: 'password',
   createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
+  updatedAt: 'updatedAt',
+  resetPasswordToken: 'resetPasswordToken',
+  resetPasswordTokenExpiry: 'resetPasswordTokenExpiry'
 };
 
 exports.Prisma.ProblemScalarFieldEnum = {
