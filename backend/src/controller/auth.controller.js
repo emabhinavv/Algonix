@@ -1,5 +1,7 @@
 import bcrypt from "bcryptjs"
+import crypto from "crypto"
 import jwt from "jsonwebtoken"
+import nodemailer from "nodemailer"
 import cookieParser from "cookie-parser"
 import {db} from "../libs/db.js"
 import { UserRole } from "../generated/prisma/index.js"
@@ -33,13 +35,17 @@ export const register = async (req,res) => {
         //hash user password
         const hashedPassword = await bcrypt.hash(password, 10)
 
+        //creating token to verify user email 
+        const verificationToken = crypto.randomBytes(32).toString('hex')
+
         //create new user 
         const newUser = await db.user.create({
             data:{
                 email,
                 password: hashedPassword,
                 name,
-                role: UserRole.USER
+                role: UserRole.USER,
+                verificationToken
             }
         })
 
@@ -56,6 +62,43 @@ export const register = async (req,res) => {
             secure:process.env.NODE_ENV !== "development",
             maxAge : 24*60*60*1000 //24hrs
         })
+
+        //sending verification link through email
+
+        const transporter = nodemailer.createTransport({
+            host: process.env.MAILTRAP_HOST,
+            port: process.env.MAILTRAP_PORT,
+            secure: false, // true for port 465, false for other ports
+            auth: {
+              user: process.env.MAILTRAP_USERNAME,
+              pass: process.env.MAILTRAP_PASSWORD,
+            },
+          });
+           
+         
+          const mailOption =({
+            from: process.env.SENDER_ADDRESS, // sender address
+            to: newUser.email, // list of receivers
+            subject: `VERIFICATION EMAIL FROM ALGONIX`, // Subject line
+            text: `Hi ${name},
+                    We're happy you signed up for Algonix. To start
+                    exploring the Algonix, please confirm your email address.`, // plain text body
+            html: `
+                <div>
+                    <button>
+                        <a href = "${process.env.BASE_URL}api/v1/auth/verify/${verificationToken}">
+                            Click to verify
+                        </a>
+                    </button>
+                    <p>
+                        If above button don't work just copy paste this link in you browser search bar :
+                        ${process.env.BASE_URL}api/v1/auth/verify/${verificationToken}
+                    </p>
+                </div> 
+            `, // html body
+          });
+
+          await transporter.sendMail(mailOption)
 
         res.status(201).json({
             success:true,
@@ -74,6 +117,60 @@ export const register = async (req,res) => {
         res.status(500).json({
             success: false,
             message : `Error encountered in registering user`,
+            error
+        })
+    }
+}
+export const verify = async (req,res) => {
+    //taking token from params 
+    const {verificationToken} = req.params
+
+    //checking if token is provided or not 
+    if(!verificationToken){
+        return res.status(400).json({
+            success:false,
+            message:"Invalid token"
+        })
+    }
+
+    try {
+        //finding user on the basics of token given by user 
+        const user = await prisma.user.findFirst({
+            where: {
+              verificationToken
+            }
+          });
+
+        //if invalid token 
+        if(!user){
+            return res.status(400).json({
+                success:false,
+                message:"User not found"
+            })
+        }
+        
+        //if token is valid updating isVerified status and making verfication token null
+        await db.user.update({
+            where: { id: user.id },
+            data: {
+              isVerified: true,
+              verificationToken: null,
+            },
+          });
+
+          //return success status and message
+          return res.status(200).json({
+            success:true,
+            message:`User Verified successfully`
+          })
+
+          //catch block
+    } catch (error) {
+        console.log(`Error encountered in verify catch block : ${error}`);
+        
+        res.status(500).json({
+            success: false,
+            message : `Error encountered in verify`,
             error
         })
     }
@@ -112,6 +209,51 @@ export const login = async (req,res) => {
                 success: false,
                 message : `Invalid email or password`
             })
+        }
+        
+        //checking if user is verified (if not asking to verify first)
+        if(!user.isVerified){
+            const transporter = nodemailer.createTransport({
+                host: process.env.MAILTRAP_HOST,
+                port: process.env.MAILTRAP_PORT,
+                secure: false, // true for port 465, false for other ports
+                auth: {
+                  user: process.env.MAILTRAP_USERNAME,
+                  pass: process.env.MAILTRAP_PASSWORD,
+                },
+              });
+               
+             
+              const mailOption =({
+                from: process.env.SENDER_ADDRESS, // sender address
+                to: newUser.email, // list of receivers
+                subject: `VERIFICATION EMAIL FROM ALGONIX`, // Subject line
+                text: `Hi ${name},
+                        We're happy you signed up for Algonix. To start
+                        exploring the Algonix, please confirm your email address.`, // plain text body
+                html: `
+                    <div>
+                        <button>
+                            <a href = "${process.env.BASE_URL}api/v1/auth/verify/${verificationToken}">
+                                Click to verify
+                            </a>
+                        </button>
+                        <p>
+                            If above button don't work just copy paste this link in you browser search bar :
+                            ${process.env.BASE_URL}api/v1/auth/verify/${verificationToken}
+                        </p>
+                    </div> 
+                `, // html body
+              });
+    
+              await transporter.sendMail(mailOption)
+
+              return res.status(400).json({
+                success:false,
+                message:`Please verify yourself and then try again.
+                Latest verification link is send to your registered email address`
+              })
+    
         }
 
         // sign jwt token
@@ -193,4 +335,13 @@ export const check = async (req,res) => {
             error
         })
     }
+}
+
+export const forgotPassword = async (req,res) => {
+    
+}
+export const resetPassword = async (req,res) => {
+    
+}
+export const changePassword = async (req,res) => {
 }
