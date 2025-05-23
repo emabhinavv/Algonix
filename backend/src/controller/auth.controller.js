@@ -121,6 +121,7 @@ export const register = async (req,res) => {
         })
     }
 }
+
 export const verify = async (req,res) => {
     //taking token from params 
     const {verificationToken} = req.params
@@ -175,6 +176,7 @@ export const verify = async (req,res) => {
         })
     }
 }
+
 export const login = async (req,res) => {
     const {email,password} = req.body
 
@@ -292,6 +294,7 @@ export const login = async (req,res) => {
         })
     }
 }
+
 export const logout = async (req,res) => {
     try {
         //clear cookie
@@ -318,6 +321,7 @@ export const logout = async (req,res) => {
     }
     
 }
+
 export const check = async (req,res) => {
     
     try {
@@ -336,6 +340,7 @@ export const check = async (req,res) => {
         })
     }
 }
+
 export const forgotPassword = async (req,res) => {
 
     //taking email from user
@@ -428,6 +433,7 @@ export const forgotPassword = async (req,res) => {
         })
     }
 }
+
 export const resetPassword = async (req,res) => {
     const {token}= req.params
     const {newPassword} = req.body
@@ -479,6 +485,7 @@ export const resetPassword = async (req,res) => {
         })
     }
 }
+
 export const changePassword = async (req,res) => {
     //taking new and old password through body from user
     const {oldPassword, newPassword} = req.body

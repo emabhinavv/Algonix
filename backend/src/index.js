@@ -5,6 +5,7 @@ import cookieParser from "cookie-parser"
 //custom imports
 import authRoutes from "./routes/auth.routes.js"
 import {db} from "./libs/db.js"
+import problemRoutes from "./routes/problem.routes.js"
 
 
 dotenv.config()
@@ -60,6 +61,7 @@ app.get('/viewAllUser', async(req,res)=>{
 })
 
 app.use('/api/v1/auth', authRoutes)
+app.use('/api/v1/problems', problemRoutes)
 
 app.listen(port , ()=>{
     console.log(`Server is running on  ${port}`);

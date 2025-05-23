@@ -1,7 +1,7 @@
 import jwt from "jsonwebtoken";
 import {db} from "../libs/db.js";
 
-export const authMiddleware = async (req,res, next) => {
+export const authMiddleware = async (req,res,next) => {
     try {
         const token = req.cookies.token
         if (!token) {
@@ -54,6 +54,35 @@ export const authMiddleware = async (req,res, next) => {
             return res.status(400).json({
                 success:false,
                 message:`error authenticating user`
+            })
+    }
+}
+
+export const checkAdmin = async (req,res,next) => {
+    try {
+        const userId = req.user.id
+        const user = await db.user.findUnique({
+            where:{
+                id: userId
+            },
+            select:{
+                role: true
+            }
+        })
+
+        if (!user || user.role !== "ADMIN") {
+            return res.status(403).josn({
+                success:false,
+                message:`Forbidden - You do not have permission to access this resource`
+            }) 
+        }
+
+        next()
+    } catch (error) {
+        console.log(`error encountered in catch block in check Admin middleware location (auth.middleware.js): ${error}`);
+            return res.status(400).json({
+                success:false,
+                message:`You are not admin`
             })
     }
 }

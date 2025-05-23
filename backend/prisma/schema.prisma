@@ -39,22 +39,22 @@ model User {
   resetPasswordToken       String?
   resetPasswordTokenExpiry DateTime?
 
-  problems Problem[] //here we are creating realtion between user and problem that is type of one to many means one user can create multiple problems
+  problems Problem[] //here we are creating relation between user and problem that is type of one to many means one user can create multiple problems
 }
 
 model Problem {
   id          String     @id @default(uuid())
   title       String
   description String
-  difficulty  Difficulty
-  tag         String[] //means array of string ex ["tag1","tag2","tag3"]
+  difficulty  Difficulty //enum
+  tags         String[] //means array of string ex ["tag1","tag2","tag3"]
   userId      String //which user created
-  examples    Json // in json we have full control in which format we want to send data
-  contrainst  String
+  examples    Json // used json because in json we have full control in which format we want to send data
+  contraints  String
   hints       String?
   editorial   String?
 
-  testCase           Json //in this we recieve input and output example [{"input":"1", "output":"1"},{"input":"2", "output":"2"}]
+  testCases           Json //in this we recieve input and output example [{"input":"1", "output":"1"},{"input":"2", "output":"2"}]
   codeSnippets       Json
   referenceSolutions Json //whenever creating problem we have to submit reference solution
 
